@@ -1,5 +1,5 @@
 ---
-title: "SUMA"
+title: "Single Usability Metric for Accessibility (SUMA)"
 output: html_document
 date: "2024-07-19"
 ---
@@ -8,29 +8,88 @@ date: "2024-07-19"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Finding SUMA
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This is a document showing the process to find SUMA. First, the process to determine the final model dimensions is shown using **Principal Component Analysis** in R-Studio. Next, the final model tool and its corresponding VBA code is provided <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Load data and libraries
+```{r data}
+#Set working directory
+setwd("C:/Users/vanes/Documents/A-Research/A_Indoor Navigation/A_Defense/PCA")
 
-```{r cars}
 # Load libraries
 library(FactoMineR)
 library(factoextra)
 
 # Upload data
-data <- read.csv('Final Data_Rec1.csv')
-print(nrow(data))
+data <- read.csv('Final Data.csv')
+```
+## Run and Interpret PCA
+Here PCA will be conducted and researcher judgement will be used to determine which principal components (PC) and model dimensions to keep.
+```{r PCA}
+# Run Principal Component Analysis------------------------------------------------------------------------------------
+data.pca <- prcomp(data, center = TRUE, scale = TRUE) 
+
+# Scree plot
+plot(data.pca, type="l", main= "Scree Plot")  
+
+# Scree plot- proportion of variance explained by each PC
+fviz_eig(data.pca, addlabels = TRUE, main= "Scree Plot")
+
+#Summary of PCA outputs 
+summary(data.pca)  
+
+# Rotation matrix:
+print(data.pca$rotation)
+```
+## PCA proof
+Ensure fundamental assumptions and properties of PCA are upheld.
+```{r Proof}
+##Proof-----------------------------------------------------------
+# Need PC to have mean=0, and variance=eigenvalue
+eigen(cor(data))$values 
+diag(var(data.pca$x[,]))  
+
+##Show PC are orthogonal
+cor(data.pca$x)
+```
+
+## Check stability of PCA results
+Stability helps to to gauge the reliability of results.
+```{r Bootstrap}
+bootstrap_pca <- function(data, n_comp) {
+  # Sample with replacement
+  boot_sample <- data[sample(nrow(data), replace = TRUE), ]
+  
+  # Perform PCA
+  pca_result <- prcomp(boot_sample, center = TRUE, scale = TRUE)
+  
+  # Return the proportion of variance explained by each component
+  return(summary(pca_result)$importance[2, 1:n_comp])
+}
+
+B <- 1000  # Number of bootstrap iterations
+n_components <- 5  # Number of principal components to consider
+
+bootstrap_results <- replicate(B, bootstrap_pca(data, n_components))
+
+# Calculate mean and standard deviation of variance explained across bootstrap samples
+mean_var_explained <- apply(bootstrap_results, 1, mean)
+sd_var_explained <- apply(bootstrap_results, 1, sd)
+mean_var_explained
+sd_var_explained
+
+# Calculate 95% confidence intervals for mean variance explained by each principal component
+lower_ci <- mean_var_explained - (1.96 * sd_var_explained / sqrt(B))
+upper_ci <- mean_var_explained + (1.96 * sd_var_explained / sqrt(B))
+
+# Print mean and 95% CI for each principal component
+for (i in 1:n_components) {
+  cat(sprintf("Component %d: Mean = %.4f, 95%% CI = [%.4f, %.4f]\n", 
+              i, mean_var_explained[i], lower_ci[i], upper_ci[i]))
+}
 ```
 
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

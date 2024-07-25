@@ -1,5 +1,6 @@
 ---
 title: "Single Usability Metric for Accessibility (SUMA)"
+author: Vanessa Nasr
 output: html_document
 date: "2024-07-19"
 ---
@@ -10,47 +11,89 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Finding SUMA
 
-This is a document showing the process to find SUMA. First, the process to determine the final model dimensions is shown using **Principal Component Analysis** in R-Studio. Next, the final model tool and its corresponding VBA code is provided <http://rmarkdown.rstudio.com>.
+This is a document showing the process to find SUMA. First, the process to determine the final model dimensions is shown using **Principal Component Analysis (PCA)** in R-Studio. Next, the final model tool and its corresponding VBA code is provided here <http://rmarkdown.rstudio.com>.
 
-## Load data and libraries
+## 1. Load data and libraries
 ```{r data}
 #Set working directory
 setwd("C:/Users/vanes/Documents/A-Research/A_Indoor Navigation/A_Defense/PCA")
 
 # Load libraries
+library(ggplot2)
 library(FactoMineR)
 library(factoextra)
 
 # Upload data
 data <- read.csv('Final Data.csv')
 ```
-## Run and Interpret PCA
-Here PCA will be conducted and researcher judgement will be used to determine which principal components (PC) and model dimensions to keep.
-```{r PCA}
-# Run Principal Component Analysis------------------------------------------------------------------------------------
+## 2. Run PCA
+Here PCA will be conducted.
+```{r PCA1}
+# Run Principal Component Analysis
 data.pca <- prcomp(data, center = TRUE, scale = TRUE) 
 
-# Scree plot
+```
+
+## 3. Interpret PCA- PC Selection
+Now researcher judgement will be used to determine which principal components (PC) on 3 criteria.
+
+**3.1. Visualization (Scree plot):**
+visualize the variability each PC accounts for. An elbow in the plot usually signifies around where you will define a cutoff for the PC to keep.
+
+**3.2. Kaisers Rule:**
+Selected PC should have an eigenvalue greater than 1.
+
+**3.3. Proportion of Variance:**
+Selected PC should account for at least 50% of the original dataset's variability. 
+
+```{r PCA2}
+# 3.1. Visualization )Scree plot)
 plot(data.pca, type="l", main= "Scree Plot")  
 
-# Scree plot- proportion of variance explained by each PC
+# 3.2. Kaisers Rule
+eigen(cor(data))$values 
+
+# 3.3. Proportion of Variance 
+# Shown on Scree plot
 fviz_eig(data.pca, addlabels = TRUE, main= "Scree Plot")
 
-#Summary of PCA outputs 
+# Proportion of variance of each PC and cumulative variance 
 summary(data.pca)  
 
 # Rotation matrix:
 print(data.pca$rotation)
 ```
-## PCA proof
-Ensure fundamental assumptions and properties of PCA are upheld.
+Using the criteria it was decided to keep the first 2 PC based on:
+
+1. Visualization- the scree plot apprears to level off after PC 2
+2. Kaisers Rule-  can select up to the first 4 PC since they have an eigenvalue above 1
+3. Proportion of Variance- should select at least the first 2 PC to account for more than 50% of the cumulative variance 
+
+## 4. Reduced Dimension Selection
+Now that the first 2 PC were determine to keep, which original dataset dimensions to keep will be selected. In behavioral research loadings from 0.32 to 0.50 are used as selection thresholds.
+
+```{r loadings}
+# Print the loadings for the first two principal components
+rotation_matrix <- data.pca$rotation
+print(rotation_matrix[, 1:2])
+```
+Given the results of this dataset, a cut off of 0.35 was selected and yeilded a reduced dataset of 6 dimensions: satisfaction, perceivable, operable, understandable, and task completion time.
+
+## 5. PCA proof
+Last proofs can be checked to ensure fundamental assumptions and properties of PCA are upheld. 
+
+**5.1. Eigenvalues of Correlation Matrix= Variance of Transformed Data**
+If the data has been standardized (mean-centered and scaled to unit variance), the correlation matrix and the covariance matrix of the original data are essentially the same when eigenvalues are considered
+
+**5.2. Proof of Orthogonality**
+The diagonal matrix with 1s on the diagonal and 0s elsewhere in the correlation matrix of proved orthogonality and standardization. 
 ```{r Proof}
-##Proof-----------------------------------------------------------
-# Need PC to have mean=0, and variance=eigenvalue
+# PCA Proof
+# 5.1. Need PC to have mean=0, and variance=eigenvalue
 eigen(cor(data))$values 
 diag(var(data.pca$x[,]))  
 
-##Show PC are orthogonal
+# 5.2. Show PC are orthogonal
 cor(data.pca$x)
 ```
 

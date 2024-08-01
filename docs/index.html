@@ -578,48 +578,14 @@ cor(data.pca$x)</code></pre>
 ## PC12 -4.661230e-16  1.000000e+00 -1.311666e-17
 ## PC13 -7.923753e-16 -1.311666e-17  1.000000e+00</code></pre>
 </div>
-<div id="check-stability-of-pca-results" class="section level2">
-<h2>Check stability of PCA results</h2>
-<p>Stability helps to to gauge the reliability of results.</p>
-<pre class="r"><code>bootstrap_pca &lt;- function(data, n_comp) {
-  # Sample with replacement
-  boot_sample &lt;- data[sample(nrow(data), replace = TRUE), ]
-  
-  # Perform PCA
-  pca_result &lt;- prcomp(boot_sample, center = TRUE, scale = TRUE)
-  
-  # Return the proportion of variance explained by each component
-  return(summary(pca_result)$importance[2, 1:n_comp])
-}
-
-B &lt;- 1000  # Number of bootstrap iterations
-n_components &lt;- 5  # Number of principal components to consider
-
-bootstrap_results &lt;- replicate(B, bootstrap_pca(data, n_components))
-
-# Calculate mean and standard deviation of variance explained across bootstrap samples
-mean_var_explained &lt;- apply(bootstrap_results, 1, mean)
-sd_var_explained &lt;- apply(bootstrap_results, 1, sd)
-mean_var_explained</code></pre>
-<pre><code>##        PC1        PC2        PC3        PC4        PC5 
-## 0.33132553 0.19365687 0.10093199 0.07908681 0.06404694</code></pre>
-<pre class="r"><code>sd_var_explained</code></pre>
-<pre><code>##         PC1         PC2         PC3         PC4         PC5 
-## 0.016028291 0.011754798 0.006152384 0.004925823 0.004611262</code></pre>
-<pre class="r"><code># Calculate 95% confidence intervals for mean variance explained by each principal component
-lower_ci &lt;- mean_var_explained - (1.96 * sd_var_explained / sqrt(B))
-upper_ci &lt;- mean_var_explained + (1.96 * sd_var_explained / sqrt(B))
-
-# Print mean and 95% CI for each principal component
-for (i in 1:n_components) {
-  cat(sprintf(&quot;Component %d: Mean = %.4f, 95%% CI = [%.4f, %.4f]\n&quot;, 
-              i, mean_var_explained[i], lower_ci[i], upper_ci[i]))
-}</code></pre>
-<pre><code>## Component 1: Mean = 0.3313, 95% CI = [0.3303, 0.3323]
-## Component 2: Mean = 0.1937, 95% CI = [0.1929, 0.1944]
-## Component 3: Mean = 0.1009, 95% CI = [0.1006, 0.1013]
-## Component 4: Mean = 0.0791, 95% CI = [0.0788, 0.0794]
-## Component 5: Mean = 0.0640, 95% CI = [0.0638, 0.0643]</code></pre>
+<div id="test-signicance-of-pca" class="section level2">
+<h2>Test Signicance of PCA</h2>
+<p>Use the PCAtest R package to find the the overall significance of a
+PCA and more. Find more about the PCAtest package here <a href="https://github.com/arleyc/PCAtest" class="uri">https://github.com/arleyc/PCAtest</a>.</p>
+<p>If the p-value is significant, it can be concluded that the observed
+value is unlikely to have occurred by random chance. This conclusion can
+also support there was enough data points to provide meaningful PCA
+results.</p>
 <p>Note that the <code>echo = FALSE</code> parameter was added to the
 code chunk to prevent printing of the R code that generated the
 plot.</p>

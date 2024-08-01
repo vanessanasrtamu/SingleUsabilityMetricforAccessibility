@@ -97,41 +97,10 @@ diag(var(data.pca$x[,]))
 cor(data.pca$x)
 ```
 
-## Check stability of PCA results
-Stability helps to to gauge the reliability of results.
-```{r Bootstrap}
-bootstrap_pca <- function(data, n_comp) {
-  # Sample with replacement
-  boot_sample <- data[sample(nrow(data), replace = TRUE), ]
-  
-  # Perform PCA
-  pca_result <- prcomp(boot_sample, center = TRUE, scale = TRUE)
-  
-  # Return the proportion of variance explained by each component
-  return(summary(pca_result)$importance[2, 1:n_comp])
-}
+## Test Signicance of PCA
+Use the PCAtest R package to find the the overall significance of a PCA and more. Find more about the PCAtest package here <https://github.com/arleyc/PCAtest>.
 
-B <- 1000  # Number of bootstrap iterations
-n_components <- 5  # Number of principal components to consider
-
-bootstrap_results <- replicate(B, bootstrap_pca(data, n_components))
-
-# Calculate mean and standard deviation of variance explained across bootstrap samples
-mean_var_explained <- apply(bootstrap_results, 1, mean)
-sd_var_explained <- apply(bootstrap_results, 1, sd)
-mean_var_explained
-sd_var_explained
-
-# Calculate 95% confidence intervals for mean variance explained by each principal component
-lower_ci <- mean_var_explained - (1.96 * sd_var_explained / sqrt(B))
-upper_ci <- mean_var_explained + (1.96 * sd_var_explained / sqrt(B))
-
-# Print mean and 95% CI for each principal component
-for (i in 1:n_components) {
-  cat(sprintf("Component %d: Mean = %.4f, 95%% CI = [%.4f, %.4f]\n", 
-              i, mean_var_explained[i], lower_ci[i], upper_ci[i]))
-}
-```
+If the p-value is significant, it can be concluded that the observed value is unlikely to have occurred by random chance. This conclusion can also support there was enough data points to provide meaningful PCA results.
 
 
 

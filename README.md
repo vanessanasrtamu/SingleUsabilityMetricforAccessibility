@@ -1,1 +1,1 @@
-# SUMA-test2
+# Single Usability Metric for Accessibility (SUMA)

@@ -97,7 +97,7 @@ diag(var(data.pca$x[,]))
 cor(data.pca$x)
 ```
 
-## Test Significance of PCA
+## Test Significance of PCA 
 Use the PCAtest R package to find the the overall significance of a PCA and more. Find more about the PCAtest package here <https://github.com/arleyc/PCAtest>.
 
 If the p-value is significant, it can be concluded that the observed value is unlikely to have occurred by random chance. This conclusion can also support there was enough data points to provide meaningful PCA results.
